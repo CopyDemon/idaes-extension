@@ -1,0 +1,34 @@
+.mermaid_container{
+    width:100vw;
+    height:100vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding:10px;
+    position:relative;
+}
+
+.mermaid_title{
+    font-size: 18px;
+    font-weight: medium;
+}
+
+.diagram_container{
+    width:100%;
+    min-height:500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.diagram{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width:100%;
+    min-height: 100vh;
+    overflow-x: scroll;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}

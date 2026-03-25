@@ -1,0 +1,1 @@
+{"version":3,"file":"trim_file_name.js","sourceRoot":"","sources":["../../src/util/trim_file_name.ts"],"names":[],"mappings":";;AAAA,oCAIC;AAJD,SAAgB,YAAY,CAAC,QAAgB;IACzC,MAAM,WAAW,GAAG,QAAQ,CAAC,KAAK,CAAC,GAAG,CAAC,CAAC;IACxC,MAAM,QAAQ,GAAG,WAAW,CAAC,WAAW,CAAC,MAAM,GAAG,CAAC,CAAC,CAAC;IACrD,OAAO,QAAQ,CAAC;AACpB,CAAC"}
