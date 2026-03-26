@@ -81,8 +81,18 @@ function runTerminalCommand(context, command, shell, outputFilePath, vscodeConte
             ${outputFilePath}
             ...
         `);
-        // start execute terminal command and write to outputFilePath, then write to context.globalState.vscodeContextStateName
+        // Start execute terminal command and write to outputFilePath, then write to context.globalState.vscodeContextStateName
         (0, webview_handler_1.brodcastMessage)({ type: 'terminal_log', data: `\n[SYSTEM] Executing background process via SPAWN...\nCommand: ${command}\nShell: ${shell}\n` });
+        // Delete the output file if it exists to ensure we don't read stale data from a previous run
+        try {
+            if (fs.existsSync(outputFilePath)) {
+                fs.unlinkSync(outputFilePath);
+                console.log(`Deleted stale output file at ${outputFilePath}`);
+            }
+        }
+        catch (e) {
+            console.warn(`Could not delete stale output file: ${e}`);
+        }
         const child = cp.spawn(shell, ['-c', command], {
             detached: true,
             env: Object.assign({}, process.env, { PYTHONUNBUFFERED: "1", FORCE_COLOR: "1" })

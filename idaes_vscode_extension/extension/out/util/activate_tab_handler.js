@@ -32,16 +32,21 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = activateTabListener;
 const vscode = __importStar(require("vscode"));
 const webview_handler_1 = require("./webview_handler");
 const trim_file_name_1 = require("./trim_file_name");
+const extensionHandler_1 = require("./extensionHandler");
+const run_terminal_command_1 = __importDefault(require("./run_terminal_command"));
 function activateTabListener(context) {
-    vscode.window.onDidChangeActiveTextEditor(editor => {
+    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
         if (editor) {
             const currentActivateTabFileName = editor.document.fileName;
-            if (currentActivateTabFileName.includes('.py')) {
+            if (currentActivateTabFileName.endsWith('.py')) {
                 // update global state activateFileName to current activated file's name
                 console.log("Current activate tab file name is:", currentActivateTabFileName);
                 console.log(`Updating global state activated file name to ${currentActivateTabFileName}`);
@@ -52,12 +57,47 @@ function activateTabListener(context) {
                 console.log('Get file name from activate file path');
                 const activateFileName = (0, trim_file_name_1.trimFileName)(currentActivateTabFileName);
                 console.log(`Current activate file name is: ${activateFileName}`);
+                const extensionConfigData = (0, extensionHandler_1.readExtensionConfig)(context);
+                if (!extensionConfigData) {
+                    vscode.window.showErrorMessage("Config not found when switching tabs. Please set the config first.");
+                    (0, webview_handler_1.brodcastMessage)({
+                        type: 'switch_tab',
+                        message: `switch tab from ${previousActivatedFileName} to ${currentActivateTabFileName}`,
+                        activate_tab_name: activateFileName,
+                        idaesRunInfo: null,
+                        time: new Date().toISOString(),
+                    });
+                    return;
+                }
+                const sorceCommand = extensionConfigData.sorce_treminal;
+                const activateCommand = extensionConfigData.activate_command;
+                const outputFileName = extensionConfigData.output_file_name;
+                const shellType = "/bin/zsh";
+                (0, webview_handler_1.brodcastMessage)({
+                    type: 'switch_tab',
+                    message: `Starting fetch for ${currentActivateTabFileName}`,
+                    activate_tab_name: activateFileName,
+                    isLoading: true,
+                    time: new Date().toISOString(),
+                });
+                const commandIdaesRunInfo = `${sorceCommand} && ${activateCommand} && idaes-run "${currentActivateTabFileName}" "${outputFileName}" --info`;
+                let stepsData;
+                try {
+                    stepsData = await (0, run_terminal_command_1.default)(context, commandIdaesRunInfo, shellType, outputFileName, "currentFileInfo");
+                }
+                catch (err) {
+                    console.error(`Error running terminal command during tab switch: ${err.message}`);
+                    vscode.window.showErrorMessage(`Failed to load flowsheet info for new tab: ${err.message}`);
+                    stepsData = null;
+                }
                 // brodcast to all web app panel notice tab is switched
                 console.log('Brodcast switch_tab to all web app panels');
                 (0, webview_handler_1.brodcastMessage)({
                     type: 'switch_tab',
                     message: `switch tab from ${previousActivatedFileName} to ${currentActivateTabFileName}`,
                     activate_tab_name: activateFileName,
+                    idaesRunInfo: stepsData,
+                    isLoading: false,
                     time: new Date().toISOString(),
                 });
                 console.log('Brodcast done.');

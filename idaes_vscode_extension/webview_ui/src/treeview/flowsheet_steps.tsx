@@ -5,7 +5,7 @@ import { vscode } from '../vscode';
 import css from "../css/tree_app.module.css";
 
 export default function FlowsheetSteps({ idaesRunInfo }: { idaesRunInfo: idaesRunInfo }) {
-    const { setSelectedSteps } = useContext(AppContext);
+    const { setSelectedSteps, isLoading } = useContext(AppContext);
     const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
     const focuseView = useRef<HTMLSelectElement>(null)
 
@@ -45,6 +45,15 @@ export default function FlowsheetSteps({ idaesRunInfo }: { idaesRunInfo: idaesRu
 
     // generate flowsheet steps
     const stepDisplay = () => {
+        if (isLoading) {
+            console.log('loading idaes-extension-steps');
+            return (
+                <div>
+                    <p>Building idaes-extension-steps...</p>
+                </div>
+            )
+        }
+
         // no config data
         if (!idaesRunInfo) {
             return (

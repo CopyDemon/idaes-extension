@@ -6,7 +6,7 @@ import ConfigView from "./treeview/configView";
 import AiChat from "./aichat/aichat";
 import css from "./css/tree_app.module.css";
 export default function TreePage() {
-    const { idaesRunInfo, activateFileName, setIsRunningFlowsheet } = useContext(AppContext);
+    const { idaesRunInfo, activateFileName, setIsRunningFlowsheet, isLoading } = useContext(AppContext);
     const [showConfig, setShowConfig] = useState(false);
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export default function TreePage() {
     }, [])
     return (
         <div className={`${css.tree_app_container}`}>
-            <h2>Current Files is: {activateFileName}</h2>
+            <h2>Current Files is: {activateFileName} (Loading: {String(isLoading)})</h2>
             <AiChat />
             <TreeNavBar setShowConfig={setShowConfig} />
             <div style={{ display: showConfig ? "block" : "none" }}>

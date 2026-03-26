@@ -58,6 +58,24 @@ export default function treeview(context: vscode.ExtensionContext) {
                 return;
             }
 
+            if (!fileName.endsWith('.py')) {
+                vscode.window.showErrorMessage("Please open a python flowsheet file to use IDAES extension.");
+                if (reactReady || true) { // Always post initial config so UI populates
+                    webviewView.webview.postMessage({
+                        type: "init",
+                        content: '',
+                        idaesRunInfo: null,
+                        fileName: fileName !== '' ? trimFileName(fileName) : 'No file selected',
+                        loadApp: 'treeView'
+                    });
+                    webviewView.webview.postMessage({
+                        type: "readExtensionConfig",
+                        content: extensionConfigData, 
+                    });
+                }
+                return;
+            }
+
             // when pass extension check start to build terminal commands
             // get command config data
             const sorceCommand = extensionConfigData.sorce_treminal; //e.g source .zshrc

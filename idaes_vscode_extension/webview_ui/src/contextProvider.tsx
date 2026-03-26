@@ -14,7 +14,7 @@ import {
 
 
 export function AppProvider({ children }: { children: ReactNode }) {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [idaesRunInfo, setidaesRunInfo] = useState<idaesRunInfo>({
         classname: "",
         steps: []

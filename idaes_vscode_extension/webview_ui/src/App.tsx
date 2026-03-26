@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { vscode } from './vscode';
 import { useContext } from 'react';
@@ -17,7 +18,8 @@ export default function App() {
     setFlowsheetRunnerResult, // the idaes-run result
     setExtensionConfig, // the extension config
     setExtensionErrorLogs, // the extension error logs
-    setTerminalLogs
+    setTerminalLogs,
+    setIsLoading
   } = useContext(AppContext);
 
   const [appName, setAppName] = useState('');
@@ -71,13 +73,26 @@ export default function App() {
           setActivateFileName(message.fileName);
           setidaesRunInfo(message.idaesRunInfo);
           setAppName(message.loadApp);
+          setIsLoading(false);
           break;
         case 'update':
           console.log(`VSCode post message: ${JSON.stringify(message)}`);
           setEditorContent(message.content);
           break;
         case 'switch_tab':
-          setActivateFileName(message.activate_tab_name);
+          console.log('Received switch_tab event with payload:', message);
+          if (message.isLoading !== undefined) {
+            console.log('Calling setIsLoading with:', message.isLoading);
+            flushSync(() => {
+              setIsLoading(message.isLoading);
+              setActivateFileName(message.activate_tab_name);
+            });
+          } else {
+            setActivateFileName(message.activate_tab_name);
+          }
+          if (message.idaesRunInfo !== undefined) {
+            setidaesRunInfo(message.idaesRunInfo);
+          }
           break;
         case 'flowsheet_detail':
           // handle flowsheet data

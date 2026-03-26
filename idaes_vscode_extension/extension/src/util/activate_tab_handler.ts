@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import { brodcastMessage } from './webview_handler';
 import { trimFileName } from './trim_file_name';
+import { readExtensionConfig } from './extensionHandler';
+import runTerminalCommand from './run_terminal_command';
+
 export default function activateTabListener(context: vscode.ExtensionContext) {
-    vscode.window.onDidChangeActiveTextEditor(editor => {
+    vscode.window.onDidChangeActiveTextEditor(async editor => {
         if (editor) {
             const currentActivateTabFileName = editor.document.fileName;
-            if (currentActivateTabFileName.includes('.py')) {
+            if (currentActivateTabFileName.endsWith('.py')) {
                 // update global state activateFileName to current activated file's name
                 console.log("Current activate tab file name is:", currentActivateTabFileName);
                 console.log(`Updating global state activated file name to ${currentActivateTabFileName}`);
@@ -18,6 +21,47 @@ export default function activateTabListener(context: vscode.ExtensionContext) {
                 const activateFileName = trimFileName(currentActivateTabFileName);
                 console.log(`Current activate file name is: ${activateFileName}`);
 
+                const extensionConfigData = readExtensionConfig(context);
+                if (!extensionConfigData) {
+                    vscode.window.showErrorMessage("Config not found when switching tabs. Please set the config first.");
+                    brodcastMessage(
+                        {
+                            type: 'switch_tab',
+                            message: `switch tab from ${previousActivatedFileName} to ${currentActivateTabFileName}`,
+                            activate_tab_name: activateFileName,
+                            idaesRunInfo: null,
+                            time: new Date().toISOString(),
+                        }
+                    );
+                    return;
+                }
+
+                const sorceCommand = extensionConfigData.sorce_treminal;
+                const activateCommand = extensionConfigData.activate_command;
+                const outputFileName = extensionConfigData.output_file_name;
+                const shellType = "/bin/zsh";
+
+                brodcastMessage(
+                    {
+                        type: 'switch_tab',
+                        message: `Starting fetch for ${currentActivateTabFileName}`,
+                        activate_tab_name: activateFileName,
+                        isLoading: true,
+                        time: new Date().toISOString(),
+                    }
+                );
+
+                const commandIdaesRunInfo = `${sorceCommand} && ${activateCommand} && idaes-run "${currentActivateTabFileName}" "${outputFileName}" --info`;
+                
+                let stepsData: any;
+                try {
+                    stepsData = await runTerminalCommand(context, commandIdaesRunInfo, shellType, outputFileName, "currentFileInfo");
+                } catch (err: any) {
+                    console.error(`Error running terminal command during tab switch: ${err.message}`);
+                    vscode.window.showErrorMessage(`Failed to load flowsheet info for new tab: ${err.message}`);
+                    stepsData = null;
+                }
+
                 // brodcast to all web app panel notice tab is switched
                 console.log('Brodcast switch_tab to all web app panels');
                 brodcastMessage(
@@ -25,6 +69,8 @@ export default function activateTabListener(context: vscode.ExtensionContext) {
                         type: 'switch_tab',
                         message: `switch tab from ${previousActivatedFileName} to ${currentActivateTabFileName}`,
                         activate_tab_name: activateFileName,
+                        idaesRunInfo: stepsData,
+                        isLoading: false,
                         time: new Date().toISOString(),
                     }
                 );
