@@ -117,7 +117,7 @@ export default function FlowsheetSteps({ idaesRunInfo }: { idaesRunInfo: idaesRu
                     onChange={() => handleOpenView()}
                 >
                     <option value="">Open Results View</option>
-                    <option value="webview">Flowsheet Veriables View</option>
+                    <option value="webview">Flowsheet Variables View</option>
                     <option value="mermaid">Diagram View</option>
                 </select>
             </div>
